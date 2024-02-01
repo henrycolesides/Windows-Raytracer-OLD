@@ -148,8 +148,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
                 D.x = ViewportCoordX(x);
                 D.y = ViewportCoordX(y);
                 color = TraceRay(O, D, 1.0, 1000000.0);
-                if(x == 0) printf("(%d, %d)\n", ScreenCoordX(x), ScreenCoordY(y));
-                frame.pixels[(ScreenCoordX(x) * frame.width) + ScreenCoordY(y)] = color;
+                //if(x == 0) printf("(%d, %d)\n", ScreenCoordX(x), ScreenCoordY(y));
+                frame.pixels[(ScreenCoordY(y) * frame.width) + ScreenCoordX(x)] = color;    // Crashes here
             }
         }
        //frame.pixels[(300 * frame.width) + 100] = 0;
