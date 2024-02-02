@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <stdio.h>
 
-int WIDTH = 640;
+int WIDTH = 480;
 int HEIGHT = 480;
 
 const float VWIDTH = 1.0;
@@ -89,6 +89,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
     frame_bitmap_info.bmiHeader.biCompression = BI_RGB;
     frame_device_context = CreateCompatibleDC(0);
 
+    //printf("Dot test: %f\n", Dot(coordinate_t{10, 20, 30}, {40, 50, 60}));
     HWND hwnd = CreateWindowEx(
         0,
         WND_CLASS_NAME,
@@ -100,6 +101,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
         hInstance,
         NULL);
 
+    SetWindowPos(hwnd, HWND_TOP, 800, 300, WIDTH, HEIGHT, SWP_NOOWNERZORDER);
     if(hwnd == NULL)
     {
         return 0;
@@ -137,20 +139,33 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
         //        frame.pixels[(j * frame.width) + i] = MapColor(ir, ig, ib);
         //    }
         //}
-        printf("Screen: (%d, %d)\n", frame.width, frame.height);
-        printf("Canvas: (%d, %d)\n", frame.width/2, frame.height/2);
+        //printf("Screen: (%d, %d)\n", frame.width, frame.height);
+        //printf("Canvas: (%d, %d)\n", frame.width/2, frame.height/2);
         coordinate_t D = {0, 0, VDISTANCE};
         UINT32 color = 0;
-        for(int x = -(frame.width/2); x < (frame.width/2); ++x)
+        for(int j = -(frame.height/2); j < (frame.height/2); ++j)
         {
-            for(int y = -(frame.height/2); y < (frame.height/2); ++y)
+            for(int i = -(frame.width/2); i < (frame.width/2); ++i)
             {
-                D.x = ViewportCoordX(x);
-                D.y = ViewportCoordX(y);
-                color = TraceRay(O, D, 1.0, 1000000.0);
+                int x = ScreenCoordX(i);
+                int y = ScreenCoordY(j);
+                D.x = ViewportCoordX(i);
+                D.y = ViewportCoordY(j);
+                color = TraceRay(O, D, 1, 1000000.0);
                 //if(x == 0) printf("(%d, %d)\n", ScreenCoordX(x), ScreenCoordY(y));
-                frame.pixels[(ScreenCoordY(y) * frame.width) + ScreenCoordX(x)] = color;    // Crashes here
-            }
+                frame.pixels[(y * frame.width) + x] = color;    // Crashes here
+                //auto r = double(x) / (frame.width - 1);
+                //auto g = double(y) / (frame.height - 1);
+                //auto b = 0;
+                //
+                //auto ir = static_cast<UINT32>(255.999 * r);// << 16;
+                ////printf("red: 0x%08x\n", ir);
+                //auto ig = static_cast<UINT32>(255.999 * g);// << 8;
+                ////printf("green: 0x%08x\n", ig);
+                //auto ib = static_cast<UINT32>(255.999 * b);
+                //
+                //frame.pixels[(y * frame.width) + x] = MapColor(ir, ig, ib);
+            }   //
         }
        //frame.pixels[(300 * frame.width) + 100] = 0;
         InvalidateRect(hwnd, NULL, FALSE);
@@ -233,41 +248,46 @@ UINT32 TraceRay(coordinate_t O, coordinate_t D, float t_min, float t_max)
 {
     float closest_t = 1000000.0;
    // sphere_t closest_sphere = {{NULL, NULL, NULL}, {NULL, NULL, NULL}, NULL};
-    sphere_t closest_sphere = {0};
+    sphere_t * closest_sphere = NULL;
     sphere_t the_sphere = {{0.0, -1.0, 3.0}, {255, 0, 0}, 1.0};
     coordinate_t ts = IntersectRaySphere(O, D, the_sphere);
     if(ts.x >= t_min && ts.x < t_max && ts.x < closest_t)
     {
+ //       printf("Sphere found!\n");
         closest_t = ts.x;
-        closest_sphere = {the_sphere.c, the_sphere.color, the_sphere.r};
+        closest_sphere = &the_sphere;
     }
 
     if(ts.y >= t_min && ts.y < t_max && ts.y < closest_t)
     {
+//        printf("Sphere found!\n");
         closest_t = ts.y;
-        closest_sphere = {the_sphere.c, the_sphere.color, the_sphere.r};
+        closest_sphere = &the_sphere;
     }
 
-    if(closest_sphere.r = 0)
+    if(!closest_sphere)
     {
         return 0;
     }
-    return MapColor(closest_sphere.color.r, closest_sphere.color.g, closest_sphere.color.b);
+    else
+    {
+        return MapColor(closest_sphere->color.r, closest_sphere->color.g, closest_sphere->color.b);
+    }
 }
 
 coordinate_t IntersectRaySphere( coordinate_t O, coordinate_t D, sphere_t sphere)
 {
     float r = sphere.r;
-    coordinate_t CO = {O.x - sphere.c.x, O.y - sphere.c.y, O.z - sphere.c.y};
+    coordinate_t CO = {O.x - sphere.c.x, O.y - sphere.c.y, O.z - sphere.c.z};
 
     float a = Dot(D, D);
     float b = 2 * Dot(CO, D);
     float c = Dot(CO, CO) - (sphere.r * sphere.r);
 
     float discriminant = (b * b) - (4 * a * c);
-    if(discriminant < 0)
+    if(discriminant < 0.0)
     {
-        return {1000000.0, 1000000.0, 0};
+        return {1000000.0, 1000000.0, 0.0};
     }
 
     float t1 = (-b + std::sqrt(discriminant)) / (2 * a);
