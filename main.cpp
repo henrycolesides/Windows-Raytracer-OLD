@@ -5,6 +5,8 @@
 #include <cmath>
 #include <windows.h>
 #include <stdio.h>
+//#include "vec3.h"
+
 
 int WIDTH = 480;
 int HEIGHT = 480;
@@ -101,7 +103,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
         hInstance,
         NULL);
 
-    SetWindowPos(hwnd, HWND_TOP, 800, 300, WIDTH, HEIGHT, SWP_NOOWNERZORDER);
+    SetWindowPos(hwnd, HWND_TOP, 0, 0, WIDTH, HEIGHT, SWP_NOOWNERZORDER);
     if(hwnd == NULL)
     {
         return 0;
@@ -118,29 +120,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
             //TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
-
-        //for(int j = 1; j < frame.height; ++j)
-        //{
-        //    for(int i = 0; i < frame.width; ++i)
-        //    {
-        //        auto r = double(i) / (frame.width - 1);
-        //        auto g = double(j) / (frame.height - 1);
-        //        auto b = 0;
-        //
-        //        auto ir = static_cast<UINT32>(255.999 * r);// << 16;
-        //        //printf("red: 0x%08x\n", ir);
-        //        auto ig = static_cast<UINT32>(255.999 * g);// << 8;
-        //        //printf("green: 0x%08x\n", ig);
-        //        auto ib = static_cast<UINT32>(255.999 * b);
-        //        //printf("blue: 0x%08x\n", ib);
-        //        //auto color = ir | ig | ib;
-        //        //printf("Color: 0x%08x\n", color);
-        //        //frame.pixels[(j * frame.width) + i] = color;
-        //        frame.pixels[(j * frame.width) + i] = MapColor(ir, ig, ib);
-        //    }
-        //}
-        //printf("Screen: (%d, %d)\n", frame.width, frame.height);
-        //printf("Canvas: (%d, %d)\n", frame.width/2, frame.height/2);
+ 
         coordinate_t D = {0, 0, VDISTANCE};
         UINT32 color = 0;
         for(int j = -(frame.height/2); j < (frame.height/2); ++j)
