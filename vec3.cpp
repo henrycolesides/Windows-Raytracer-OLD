@@ -1,3 +1,4 @@
+#include <cmath>
 #include "Vec3.h"
 
 Vec3::Vec3() : values{0} {return;}
@@ -47,6 +48,20 @@ float Vec3::get(const char dimension)
     }
 }
 
+float Vec3::length() const
+{
+    return std::sqrt((values[0] * values[0]) + (values[1] * values[1]) + (values[2] * values[2]));
+}
+
+Vec3 Vec3::operator-()
+{
+   // Vec3 temp = *this;
+   // temp.values[0] = -temp.values[0];
+   // temp.values[1] = -temp.values[1];
+   // temp.values[2] = -temp.values[2];
+   // return temp;
+   return Vec3(-values[0], -values[1], -values[2]);
+}
 float Vec3::operator*(const Vec3 & op2)
 {
     return (values[0] * op2.values[0]) 

@@ -11,6 +11,7 @@
 #include "vec3.h"
 #include "color.h"
 #include "shapes.h"
+#include "light.h"
 
 int WIDTH = 480;
 int HEIGHT = 480;
@@ -96,7 +97,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
 
         // Raytracing begins here!
 
-        Vec3 O = Vec3(0.0, 0.0, 0.0);
+        Vec3 O = Vec3(0.0, 0.0, -10.0);
         Vec3 D = Vec3(0.0, 0.0, VDISTANCE);
         uint32_t color = INT_MAX;
         for(int j = -(frame.height/2); j < (frame.height/2); ++j)
@@ -209,10 +210,19 @@ uint32_t TraceRay(Vec3 & O, Vec3 & D, float t_min, float t_max)
     float closest_t = __FLT_MAX__;
 
     Sphere * closest_sphere = nullptr;
-    Sphere spheres[3] = {Sphere(Vec3(0.0, -1.0, 3.0), 1.0, Color(255, 0, 0)),
-                        Sphere(Vec3(2.0, 0.0, 4.0), 1.0, Color(0, 0, 255)),
-                        Sphere(Vec3(-2.0, 0, 4.0), 1.0, Color(0, 255, 0))};
-    for(int i = 0; i < 3; ++i)
+    Sphere spheres[4] = {Sphere(Vec3(0.0, -1.0, 3.0), 1.0, Color(255, 0, 0), 500.0),
+                        Sphere(Vec3(2.0, 0.0, 4.0), 1.0, Color(0, 0, 255), 500.0),
+                        Sphere(Vec3(-2.0, 0, 4.0), 1.0, Color(0, 255, 0), 10.0),
+                        Sphere(Vec3(0.0, -5001.0, 0.0), 5000.0, Color(255, 255, 0), 1000.0)};
+    
+    AmbientLight al1 = AmbientLight(0.2);
+    PointLight pl1 = PointLight(0.6, Vec3(2, 1, 0));
+    DirectionalLight dl1 = DirectionalLight(0.2, Vec3(1, 4, 4));
+
+    Light *lights[3] = {&al1, &pl1, &dl1};
+    float intensity = 0.0;
+
+    for(int i = 0; i < 4; ++i)
     { 
         Vec3 ts = spheres[i].intersect_ray(O, D);
 
@@ -228,6 +238,21 @@ uint32_t TraceRay(Vec3 & O, Vec3 & D, float t_min, float t_max)
             closest_sphere = &spheres[i];
         }
     }
+    
     if(!closest_sphere) return INT_MAX;
-    else return closest_sphere->map_color();
+    else 
+    {
+        // Diffuse reflection calculations
+        Vec3 P = O + closest_t * D;
+        Vec3 N = P - closest_sphere->get_position();
+        N = (N / N.length());
+
+        intensity = 0.0;
+        for(int i = 0; i < 3; ++i)
+        {
+            intensity += lights[i]->compute_lighting(P, N, -D, closest_sphere->get_specularity());
+        }
+
+        return closest_sphere->map_color(intensity);
+    }
 }
